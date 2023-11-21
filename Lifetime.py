@@ -4,18 +4,20 @@ import matplotlib.pyplot as plt
 import time
 import pandas as pd
 import math
+import os
 from pixel_switcher import PixelSwitcher
 
-OLED_current = 1e-4
-pixel = 1
+OLED_current = 1e-3
+pixel = 5
 NPLC = 100
 pixel_area = (2 * 0.001)**2  # (mm / 1000)^2 = m^2
-distance_OLED_PD = 20 / 100  # cm / 100 = m
+distance_OLED_PD = 10 / 100  # cm / 100 = m
 spectrum = "DMeCzIPN Yb"
 device_name = "test_sample"
 
 resource_string = 'USB::0x0957::0x4118::MY61150002::0::INSTR'
-PS = PixelSwitcher("COM4")
+PS = PixelSwitcher("COM3")
+time.sleep(2)
 
 # Set the desired voltage and current ranges
 # voltage_range = 2
@@ -29,10 +31,11 @@ r_PD = 0.005  # m
 
 try:
     # Create a VISA resource manager and open a connection to the instrument
-    print("Attempting connection...")
+    print("Attempting connection to Keysight...")
     rm = visa.ResourceManager()
     instrument = rm.open_resource(resource_string, timeout=10e3)
     PS.turn_on_pixel(pixel)
+    time.sleep(2)
 
     # Photodiode part
     instrument.write(f"SOUR:VOLT:RANG R2V, (@1)")
@@ -125,6 +128,7 @@ try:
             measurement_done = True
 
     print("Measurements done")
+    time.sleep(2)
     # # Turn off the output after measurement is done
     # instrument.write("OUTP OFF, (@1)")
     # instrument.write("OUTP OFF, (@2)")
@@ -136,9 +140,10 @@ except visa.VisaIOError as e:
     print(f"An error occurred: {e}")
 
 finally:
-    instrument.close()
+    time.sleep(2)
     instrument.write("OUTP OFF, (@1)")
     instrument.write("OUTP OFF, (@2)")
+    instrument.close()
     PS.close()
     rm.close()
 
@@ -153,6 +158,8 @@ data = {
 df = pd.DataFrame(data)
 
 # Save the DataFrame as a text file with tab separation
+if not os.path.exists('Lifetime measurements'):
+    os.makedirs('Lifetime measurements')
 df.to_csv(f'Lifetime measurements\\{device_name} p{pixel} {OLED_current}A '
           f'{start_luminance}nits.txt', sep='\t', index=False)
 
