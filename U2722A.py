@@ -3,13 +3,13 @@ import time
 import numpy as np
 
 class SMU:
-    OLED_channel = None
-    PD_channel = None
     def __init__(self):
+        self.OLED_channel = None
+        self.PD_channel = None
         self.rm = pyvisa.ResourceManager()
         self.instrument = None
         
-    def connect(self, resource_string='USB::0x0957::0x4118::MY61150002::0::INSTR', timeout=2000):
+    def connect(self, resource_string='USB::0x0957::0x4118::MY61150002::0::INSTR', timeout=5000):
         try:
             print("Attempting connection to Keysight U2722A...")
             self.instrument = self.rm.open_resource(resource_string, timeout=int(timeout))
@@ -48,16 +48,30 @@ class SMU:
         return float(result)
     
     def set_OLED_current(self, value):
-        # Keysight should correctly set range based on value. Although it might not work.
-        self.instrument.write(f"SOUR:CURR:RANG R{value}, (@{self.OLED_channel})")
+        self.instrument.write(f"SOUR:CURR:RANG R{self.find_current_range(value)}, (@{self.OLED_channel})")
         self.instrument.write(f"SOUR:CURR {value}, (@{self.OLED_channel})")
+    
+    def find_current_range(self, value):
+        current_ranges = [1e-6, 10e-6, 100e-6, 1e-3, 10e-3, 120e-3]
+        range_labels = ["1uA", "10uA", "100uA", "1mA", "10mA", "120mA"]
+
+        if value < 0:
+            return "Invalid current value. Must be non-negative."
+
+        for i, range_limit in enumerate(current_ranges):
+            if value < range_limit:
+                print(f"Current range set to: {range_labels[i]}")
+                return range_labels[i]
+
+        return "Value exceeds the maximum range."
+
         
     def measure_dark_current(self, npoints=5):
         print("Measuring dark current")
         dark_current = []
         for idx in range(npoints):
             dark_current.append(self.measure_PD_current())
-            time.sleep(2.5)
+            # time.sleep(2.5)
         print(f"Dark current = {dark_current}")
         dark_current = np.mean(dark_current)
         print(f"Dark current = {dark_current}")

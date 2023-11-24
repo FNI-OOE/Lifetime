@@ -5,14 +5,15 @@ import math
 import os
 import matplotlib.pyplot as plt
 
-class Calc:
-    time_values = []
-    voltage_values = []
-    current_values = []
-    luminance_values = []
-    relative_luminance =[]
-    start_luminance = None
-    start_time = None
+class Calculations:
+    def __init__(self):
+        self.time_values = []
+        self.voltage_values = []
+        self.current_values = []
+        self.luminance_values = []
+        self.relative_luminance =[]
+        self.start_luminance = None
+        self.start_time = None
         
     def get_calibration(self, path='C:\\Users\\Giedrius\\Desktop\\Life setupas\\', material=None):
         self.calibration = pd.read_csv(f'{path}Calibrations.txt', sep='\t')
@@ -25,18 +26,17 @@ class Calc:
                / np.sum(self.calibrations['Spectrum']*self.calibrations['PD interpolated'])) / math.sin(math.atan(r_PD/distance_OLED_PD)) ** 2
         if self.start_luminance is None:
             self.start_luminance = lum
-        self.luminance_values.append(lum)
+            print(f"Start luminance = {self.start_luminance}")
+        self.relative_luminance.append(lum/self.start_luminance)
         return lum
         
     def get_time(self):
         if self.start_time is None:
             self.start_time = time.time()
         elapsed_time = time.time() - self.start_time
-        self.time_values.append(elapsed_time)
         return elapsed_time 
     
     def form_output(self):
-        self.relative_luminance = self.luminance_values / self.start_luminance
         self.data = {
             'time': self.time_values,
             'PD current': self.current_values,
@@ -49,8 +49,7 @@ class Calc:
     def save_file(self, save_path, device_name, pixel, OLED_current):
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        self.data.to_csv(os.path.join(save_path,f'Lifetime measurements\\{device_name} p{pixel} {OLED_current}A ' 
-                                      f'{self.start_luminance}nits.txt', sep='\t', index=False))
+        self.data.to_csv(os.path.join(save_path,f'{device_name} p{pixel} {OLED_current}A {self.start_luminance}nits.txt'), sep='\t', index=False)
         print("Results saved")
 
     def make_plots(self):
@@ -92,7 +91,7 @@ class Calc:
         self.ax3.relim()
         self.ax3.autoscale_view()
 
-        plt.pause(0.01)
+        plt.pause(0.1)
         time.sleep(0.1)
 
         

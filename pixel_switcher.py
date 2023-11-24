@@ -1,9 +1,11 @@
 from arduino_relay_com import ArduinoRelayCom
+import time
 
 class PixelSwitcher:
 
     def __init__(self, port):
         self.relay = ArduinoRelayCom(port)
+        time.sleep(2)
 
     def turn_off(self):
         return self.relay.turn_all_off()
