@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 
 class Calculations:
     def __init__(self):
+        self.reset_data()
+
+    def reset_data(self):
         self.time_values = []
         self.voltage_values = []
         self.current_values = []
@@ -15,7 +18,7 @@ class Calculations:
         self.start_luminance = None
         self.start_time = None
         
-    def get_calibration(self, path='C:\\Users\\Giedrius\\Desktop\\Life setupas\\', material=None):
+    def get_calibration(self, path='C:\\Users\\VUTMI\\Desktop\\LIFEsetupodalykai\\Lifetime\\', material=None):
         self.calibration = pd.read_csv(f'{path}Calibrations.txt', sep='\t')
         self.spectrum = pd.read_csv(f'{path}Spectra\\{material}.txt', sep='\t')
         self.calibrations = pd.merge(self.calibration, self.spectrum, on='Wavelength', how='outer').fillna(0)
@@ -27,6 +30,7 @@ class Calculations:
         if self.start_luminance is None:
             self.start_luminance = lum
             print(f"Start luminance = {self.start_luminance}")
+            print("Warning about upcoming user warning: since first time point is 0, it is normal to get logscale errors.")
         self.relative_luminance.append(lum/self.start_luminance)
         return lum
         
@@ -49,13 +53,14 @@ class Calculations:
     def save_file(self, save_path, device_name, pixel, OLED_current):
         if not os.path.exists(save_path):
             os.makedirs(save_path)
-        self.data.to_csv(os.path.join(save_path,f'{device_name} p{pixel} {OLED_current}A {self.start_luminance}nits.txt'), sep='\t', index=False)
+        self.data.to_csv(os.path.join(save_path, f'{device_name} p{pixel} {OLED_current}A {self.start_luminance}nits.txt'), sep='\t', index=False)
         print("Results saved")
 
-    def make_plots(self):
+    def make_plots(self, title="Pixel 1"):
         # Create a real-time updating plot
         plt.ion()  # Turn on interactive mode
         self.fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1)
+        self.fig.suptitle(title, fontsize=16)
         self.ax1.set_xlabel("Time (s)")
         self.ax1.set_ylabel("Luminance (cd/m^2)")
         self.ax2.set_xlabel("Time (s)")
@@ -66,15 +71,15 @@ class Calculations:
     def update_plots(self):
         self.ax1.clear()
         self.ax1.plot(self.time_values, self.luminance_values)
-        self.ax1.set_xlabel("Time (s)")
-        self.ax1.set_ylabel("Luminance (cd/m^2)")
+        # self.ax1.set_xlabel("Time (s)")
+        # self.ax1.set_ylabel("Luminance (cd/m^2)")
         self.ax1.grid(True)
         self.ax1.relim()
         self.ax1.autoscale_view()
 
         self.ax2.clear()
         self.ax2.plot(self.time_values, self.luminance_values)
-        self.ax2.set_xlabel("Time (s)")
+        # self.ax2.set_xlabel("Time (s)")
         self.ax2.set_ylabel("Luminance (cd/m^2)")
         self.ax2.set_xscale('log')
         self.ax2.grid(True)
@@ -84,7 +89,7 @@ class Calculations:
         self.ax3.clear()
         self.ax3.plot(self.time_values, self.luminance_values)
         self.ax3.set_xlabel("Time (s)")
-        self.ax3.set_ylabel("Luminance (cd/m^2)")
+        # self.ax3.set_ylabel("Luminance (cd/m^2)")
         self.ax3.set_xscale('log')
         self.ax3.set_yscale('log')
         self.ax3.grid(True)

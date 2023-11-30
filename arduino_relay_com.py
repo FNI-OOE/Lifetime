@@ -6,6 +6,7 @@ class ArduinoRelayCom:
 
     def __init__(self, port='COM3'):
         self.arduino = serial.Serial(port=port,   baudrate=9600, timeout=2)
+        time.sleep(3)
         print("Connected to Arduino")
 
     def write_read(self, x:str) -> str:
@@ -68,5 +69,12 @@ class ArduinoRelayCom:
 
 if __name__ == "__main__":
     pass
-    # relay = ArduinoRelayCom('COM5')
+    # relay = ArduinoRelayCom('COM12')
+    # print(relay.get_pin_states())
+    # time.sleep(2)
+    # relay.turn_on_pin(4)
+    # time.sleep(1)
+    # relay.turn_all_off()
+    #
+    # relay.close()
 

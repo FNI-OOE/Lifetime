@@ -2,12 +2,14 @@ import pyvisa
 import time
 import numpy as np
 
+
 class SMU:
     def __init__(self):
         self.OLED_channel = None
         self.PD_channel = None
         self.rm = pyvisa.ResourceManager()
         self.instrument = None
+        self.connect()
         
     def connect(self, resource_string='USB::0x0957::0x4118::MY61150002::0::INSTR', timeout=5000):
         try:
@@ -18,6 +20,11 @@ class SMU:
             print(f"Connection failed with error: {e}")
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
+
+    def configure(self, nplc=100, v_limit=12):
+        self.setup_PD(channel=1, NPLC=nplc)
+        self.setup_OLED(channel=2, voltage_limit=v_limit)
+        self.output_on(channels=[self.PD_channel])
                       
     def setup_PD(self, channel=1, NPLC=100): 
         self.PD_channel = channel

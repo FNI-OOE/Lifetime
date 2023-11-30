@@ -3,7 +3,7 @@ from pixel_switcher import PixelSwitcher
 import time
 
 SMU = SMU()
-PS = PixelSwitcher("COM3")
+PS = PixelSwitcher("COM12")
 SMU.connect()
 # SMU.setup_PD(channel=1, NPLC=100)
 SMU.setup_OLED()
